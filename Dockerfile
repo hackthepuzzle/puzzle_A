@@ -1,13 +1,16 @@
-# Use the official Nginx image as the base (1.19+ supports templates)
-FROM nginx:alpine
+# Use Node.js Alpine as the base for a lightweight, reliable server
+FROM node:alpine
 
-# Cloud Run requires the container to listen on $PORT. 
-# The official Nginx image uses envsubst to replace variables in any .template file 
-# found in /etc/nginx/templates/ and outputs the result to /etc/nginx/conf.d/
-COPY nginx.conf.template /etc/nginx/templates/default.conf.template
+# Set the working directory
+WORKDIR /usr/src/app
 
-# Copy the static files to the nginx html directory
-COPY . /usr/share/nginx/html
+# Copy the entire project
+COPY . .
 
-# The default Nginx entrypoint will automatically handle the envsubst step.
-# No custom CMD is needed, making the startup process more robust.
+# Cloud Run sets the PORT environment variable.
+# Our server.js is designed to listen to process.env.PORT automatically.
+EXPOSE 8080
+
+# Start the server using the built-in Node.js runtime
+# This is much more reliable for port binding on Cloud Run than Nginx
+CMD [ "node", "server.js" ]
