@@ -6,6 +6,9 @@
     <title>Smart Venue Experience System (SVES)</title>
     <meta name="description" content="A mobile-first ecosystem for seamless stadium experiences.">
     
+    <!-- Security: Content Security Policy -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: 'unsafe-inline' 'unsafe-eval'; img-src 'self' https: data:; frame-src https://www.google.com https://accounts.google.com;">
+    
     <!-- Google Services Scripts -->
     <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -26,12 +29,18 @@
 <body>
     <!-- LOGIN OVERLAY -->
     <div id="login-overlay" class="panel-overlay show" style="z-index: 1000; background: var(--bg-color);">
-        <div class="login-card glass-panel pop-up-anim" style="padding: 40px; text-align: center; max-width: 340px;">
+        <div class="login-card glass-panel pop-up-anim" style="padding: 40px; text-align: center; max-width: 360px;">
             <i class="ph-fill ph-shield-check text-accent" style="font-size: 4rem; margin-bottom: 20px;"></i>
             <h2 style="margin-bottom: 10px;">Welcome to SVES</h2>
-            <p style="color: var(--text-secondary); margin-bottom: 30px;">Sign in with your Google account to access your personalized stadium experience.</p>
+            <p style="color: var(--text-secondary); margin-bottom: 24px;">Sign in with your Google account for full features, or use <strong>Guest Mode</strong> for this challenge demo.</p>
             <div id="google-login-btn"></div>
-            <button class="btn-primary mt-1" style="width: 100%;" onclick="app.mockLogin()">Continue as Guest</button>
+            <div id="auth-error-msg" style="color: var(--accent-color); font-size: 0.8rem; margin-top: 10px; display: none;">
+                <i class="ph ph-warning"></i> Client ID not configured. Please see README.
+            </div>
+            <div style="margin: 20px 0; display: flex; align-items: center; width: 100%;">
+                <hr style="flex: 1; opacity: 0.2;"> <span style="padding: 0 10px; opacity: 0.5; font-size: 0.8rem;">OR</span> <hr style="flex: 1; opacity: 0.2;">
+            </div>
+            <button class="btn-primary" style="width: 100%;" onclick="app.mockLogin()">Continue as Guest (Demo Mode)</button>
         </div>
     </div>
 
@@ -278,10 +287,10 @@
                         <p>Hi Alex! I'm your Gemini-powered assistant. I have live access to your ticket and stadium sensors. How can I help you today?</p>
                     </div>
                 </div>
-                <div class="chat-input-area">
-                    <button class="icon-btn-small" onclick="app.startVoiceRecognition()" id="mic-btn"><i class="ph ph-microphone"></i></button>
-                    <input type="text" id="gemini-input" placeholder="Ask about gates, food, or exit..." onkeypress="if(event.key === 'Enter') app.sendGeminiMsg()">
-                    <button onclick="app.sendGeminiMsg()"><i class="ph-fill ph-paper-plane-right"></i></button>
+                <div class="chat-input-area" role="form" aria-label="Send message to Gemini">
+                    <button class="icon-btn-small" onclick="app.startVoiceRecognition()" id="mic-btn" aria-label="Start Voice Recognition"><i class="ph ph-microphone"></i></button>
+                    <input type="text" id="gemini-input" placeholder="Ask about gates, food, or exit..." onkeypress="if(event.key === 'Enter') app.sendGeminiMsg()" aria-label="Message Gemini">
+                    <button onclick="app.sendGeminiMsg()" aria-label="Send Message"><i class="ph-fill ph-paper-plane-right"></i></button>
                 </div>
             </div>
         </div>

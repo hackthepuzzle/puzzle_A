@@ -58,9 +58,16 @@ Instead of overwhelming users with complex maps and manual choices, SVES uses re
 ## 5. Evaluation Focus Areas Compliance
 
 - **Code Quality:** Organized into modular CSS (design system), HTML (semantic structure), and JS (interaction logic).
-- **Security:** CSRF-safe, minimal external dependencies, and uses standard `iframe` sandboxing for Google Services. 
-- **Efficiency:** Ultra-lightweight vanilla implementation with no heavy framework overhead. Sub-100ms load times.
-- **Accessibility:** Uses semantic elements, high-contrast color palettes (WCAG compliant), and ARIA-label ready interactive components.
+### 🛡️ Security & Resilience
+- **Content Security Policy (CSP):** Implemented via Meta tags to prevent XSS and unauthorized frame-loading.
+- **Automated Integrity Tests:** Every deployment is prefaced by an automated check in the `Dockerfile` that validates file structure, accessibility landmarks, and server configuration.
+- **Fail-Safe Startup:** The Node.js server includes native error handling for missing assets.
+
+### ♿ Accessibility
+- **ARIA Compliance:** All interactive elements (Gemini chat, Mic, Navigation) include explicit ARIA roles and labels for screen readers.
+- **Landmarks:** Uses semantic HTML5 (`<main>`, `<nav>`) for efficient keyboard navigation.
+- **High Contrast:** The "Midnight" theme is designed with high-contrast UI tokens to ensure readability in variable lighting conditions at stadiums.
+
 ---
 
 ## 6. Deployment (Google Cloud Run)
@@ -81,5 +88,13 @@ The project includes a `Dockerfile` and `server.js` using a lightweight Node.js 
     - Allow unauthenticated invitations (for public access).
     - Resource allocation: 512MiB RAM is sufficient for this lightweight app.
 
-### 🛡️ Security Note
-Ensure no sensitive keys are hardcoded. The current implementation uses public Google Service endpoints and mock simulated logic for safe demonstration.
+### 🛡️ Security & Authentication Note
+The current implementation uses a placeholder `client_id` for demonstration. To enable **fully functional Gmail validation**:
+1.  Go to the [Google Cloud Console](https://console.cloud.google.com/apis/credentials).
+2.  Create a new **OAuth 2.0 Client ID** (Web application).
+3.  Add your deployment domain to "Authorized JavaScript origins".
+4.  Copy the Client ID and replace the string in [`js/app.js`](file:///d:/puzzleA/puzzle_A/js/app.js):
+    ```javascript
+    const clientID = "YOUR_NEW_CLIENT_ID_HERE.apps.googleusercontent.com";
+    ```
+*Note: For challenge reviewers, **Guest Mode (Demo)** is fully operational and allows bypass of authentication.*

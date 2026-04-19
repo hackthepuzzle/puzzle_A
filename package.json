@@ -1,0 +1,14 @@
+{
+  "name": "sves-stadium-experience",
+  "version": "1.0.0",
+  "description": "Smart Venue Experience System for large-scale sporting venues.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test.js"
+  },
+  "dependencies": {},
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
