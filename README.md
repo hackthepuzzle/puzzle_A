@@ -68,7 +68,7 @@ Instead of overwhelming users with complex maps and manual choices, SVES uses re
 To deploy this solution to **Google Cloud Run** via **GitHub Actions**:
 
 ### 📦 Containerization
-The project includes a `Dockerfile` using an optimized Nginx Alpine image. It is pre-configured to handle the dynamic `$PORT` environment variable required by Cloud Run.
+The project includes a `Dockerfile` and `nginx.conf.template` using the official Nginx template system. This automatically maps the Google Cloud Run `$PORT` environment variable to the Nginx listener, ensuring a successful health check and deployment.
 
 ### 🚀 Continuous Deployment
 1.  **Push to GitHub:** Ensure all files are in your repository.

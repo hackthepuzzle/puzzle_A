@@ -151,6 +151,49 @@ const app = {
         document.getElementById('add-to-calendar').href = `${baseUrl}&text=${title}&dates=${dates}&details=${details}&location=${location}`;
     },
 
+    /* GOOGLE MAPS JS API INIT */
+    initMap() {
+        console.log("Initializing Live Google Map API...");
+        const wembley = { lat: 51.5560, lng: -0.2796 };
+        
+        const map = new google.maps.Map(document.getElementById("google-map"), {
+            zoom: 16,
+            center: wembley,
+            mapId: "SVES_STADIUM_MAP", // Use a styled map if available
+            disableDefaultUI: true,
+            styles: [
+                { elementType: "geometry", stylers: [{ color: "#242f3e" }] },
+                { elementType: "labels.text.stroke", stylers: [{ color: "#242f3e" }] },
+                { elementType: "labels.text.fill", stylers: [{ color: "#746855" }] },
+                {
+                    featureType: "administrative.locality",
+                    elementType: "labels.text.fill",
+                    stylers: [{ color: "#d59563" }],
+                },
+                // Dark mode styles for premium look
+            ]
+        });
+
+        // Add Live Traffic Layer (Address user need for crowd/flow)
+        const trafficLayer = new google.maps.TrafficLayer();
+        trafficLayer.setMap(map);
+
+        // Add Marker for Current Objective (Gate 5)
+        new google.maps.Marker({
+            position: { lat: 51.5565, lng: -0.2810 },
+            map,
+            title: "Optimized Entry: Gate 5",
+            icon: {
+                path: google.maps.SymbolPath.CIRCLE,
+                scale: 10,
+                fillColor: "#ff3366",
+                fillOpacity: 0.8,
+                strokeWeight: 2,
+                strokeColor: "#ffffff"
+            }
+        });
+    },
+
     /* GOOGLE IDENTITY & AUTH */
     initGoogleLogin() {
         window.onload = () => {
