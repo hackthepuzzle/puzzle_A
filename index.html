@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Smart Venue Experience System (SVES)</title>
+    <meta name="description" content="A mobile-first ecosystem for seamless stadium experiences.">
+    
+    <!-- Google Services Scripts -->
+    <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- LOGIN OVERLAY -->
+    <div id="login-overlay" class="panel-overlay show" style="z-index: 1000; background: var(--bg-color);">
+        <div class="login-card glass-panel pop-up-anim" style="padding: 40px; text-align: center; max-width: 340px;">
+            <i class="ph-fill ph-shield-check text-accent" style="font-size: 4rem; margin-bottom: 20px;"></i>
+            <h2 style="margin-bottom: 10px;">Welcome to SVES</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 30px;">Sign in with your Google account to access your personalized stadium experience.</p>
+            <div id="google-login-btn"></div>
+            <button class="btn-primary mt-1" style="width: 100%;" onclick="app.mockLogin()">Continue as Guest</button>
+        </div>
+    </div>
+
+    <div id="app-container">
+        <!-- HEADER -->
+        <header class="app-header">
+            <div class="header-content">
+                <div class="user-greeting">
+                    <h1>Hi, Alex! 👋</h1>
+                    <p>Wembley Stadium • Block 102</p>
+                </div>
+                <div class="header-actions">
+                    <div id="google_translate_element" class="translate-widget"></div>
+                    <button class="icon-btn notif-btn" aria-label="Notifications" onclick="app.toggleNotifications()">
+                        <i class="ph ph-bell"></i>
+                        <span class="badge" id="notif-badge">2</span>
+                    </button>
+                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Alex&backgroundColor=b6e3f4" alt="Profile" class="profile-pic">
+                </div>
+            </div>
+            
+            <div class="smart-alert glass-panel" id="main-alert">
+                <div class="alert-icon"><i class="ph-fill ph-warning-circle text-accent"></i></div>
+                <div class="alert-text">
+                    <strong>Crowd Alert: Gate 3 is congested.</strong>
+                    <span>Rerouting your entry to Gate 5. Wait time: 2 mins.</span>
+                </div>
+                <button class="btn-small" onclick="app.switchView('map')">View Path</button>
+            </div>
+        </header>
+
+        <!-- MAIN CONTENT AREA -->
+        <main id="main-content" class="safe-area-bottom">
+            <!-- VIEW: HOME (Dashboard) -->
+            <section id="view-home" class="view active-view fade-in">
+                 
+                <!-- Event Timeline -->
+                <div class="section-container">
+                    <div class="section-header">
+                        <h2>Event Timeline</h2>
+                        <span class="live-badge"><span class="dot"></span>LIVE</span>
+                    </div>
+                    <div class="timeline-card glass-panel">
+                        <div class="timeline-progress">
+                            <div class="progress-bar" style="width: 35%;"></div>
+                        </div>
+                        <div class="timeline-points">
+                            <div class="point active">
+                                <span class="time">18:00</span>
+                                <span class="label">Gates Open</span>
+                            </div>
+                            <div class="point current">
+                                <span class="time">19:30</span>
+                                <span class="label">Warmup</span>
+                            </div>
+                            <div class="point">
+                                <span class="time">20:00</span>
+                                <span class="label">Kickoff</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Real-Time Metrics -->
+                <div class="section-container">
+                    <div class="section-header">
+                        <h2>Live Wait Times</h2>
+                    </div>
+                    <div class="metrics-grid">
+                        <div class="metric-card glass-panel hover-scale">
+                            <div class="metric-icon"><i class="ph ph-toilet text-secondary"></i></div>
+                            <div class="metric-info">
+                                <h3>Restrooms</h3>
+                                <span>Level 1, Sec B</span>
+                            </div>
+                            <div class="metric-value status-good">2 min</div>
+                        </div>
+                        <div class="metric-card glass-panel hover-scale">
+                            <div class="metric-icon"><i class="ph ph-hamburger text-secondary"></i></div>
+                            <div class="metric-info">
+                                <h3>Grill Station</h3>
+                                <span>Level 1, Sec C</span>
+                            </div>
+                            <div class="metric-value status-warning">12 min</div>
+                        </div>
+                        <div class="metric-card glass-panel highlight-card hover-scale">
+                            <div class="metric-content">
+                                <h3>Smart Suggestion</h3>
+                                <p>Beer queue at Sec B is 18m. Walk 2m to Sec D for early access (5m wait).</p>
+                                <button class="btn-primary" onclick="app.switchView('map')">Take Me There</button>
+                            </div>
+                            <i class="ph-fill ph-magic-wand bg-icon"></i>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW: MAP / NAVIGATION -->
+            <section id="view-map" class="view fade-in" style="display: none;">
+                <!-- Full-screen map mock / embed -->
+                <div class="map-container">
+                    <!-- Live Google Maps iframe with stadium coordinates -->
+                    <iframe 
+                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2480.9571343753737!2d-0.28286958396593535!3d51.55602481540306!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x48761181d57a876d%3A0xe6ea02e868f0a0ad!2sWembley%20Stadium!5e0!3m2!1sen!2suk!4v1698240000000!5m2!1sen!2suk" 
+                        width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade">
+                    </iframe>
+                    
+                    <!-- Overlay UI purely for design wow factor -->
+                    <div class="map-overlay-top glass-panel">
+                        <div class="search-bar">
+                            <i class="ph ph-magnifying-glass"></i>
+                            <input type="text" placeholder="Find restrooms, food, seats...">
+                        </div>
+                    </div>
+
+                    <div class="map-info-card glass-panel pop-up-anim">
+                        <div class="route-header">
+                            <div>
+                                <h3>Fastest Route Mode</h3>
+                                <p class="text-sm text-secondary">Avoiding Gate 3 Congestion</p>
+                            </div>
+                            <span class="eta">4 min walk</span>
+                        </div>
+                        <div class="route-steps">
+                            <div class="step"><i class="ph-fill ph-arrow-up text-accent"></i> Head straight on Main Concourse</div>
+                            <div class="step"><i class="ph-fill ph-arrow-u-up-right text-accent"></i> Turn right at Section D</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW: FOOD -->
+            <section id="view-food" class="view fade-in" style="display: none;">
+                <div class="section-container">
+                    <div class="header-flex">
+                        <h2>Smart Dining</h2>
+                        <span class="text-accent text-sm" style="font-weight: 600;"><i class="ph-fill ph-coins"></i> 250 Pts</span>
+                    </div>
+                    
+                    <div class="categories horizontal-scroll">
+                        <button class="category-btn active">All</button>
+                        <button class="category-btn">Fastest (< 5m)</button>
+                        <button class="category-btn">Drinks</button>
+                        <button class="category-btn">Snacks</button>
+                    </div>
+
+                    <div class="food-grid">
+                        <div class="food-card glass-panel hover-scale">
+                            <img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" alt="Burger">
+                            <div class="food-info">
+                                <h3>Classic Burger</h3>
+                                <p>Stadium Grill • Sec C</p>
+                                <div class="food-meta">
+                                    <span class="price">$12.00</span>
+                                    <span class="tag wait-warning"><i class="ph-fill ph-clock"></i> 12m wait</span>
+                                </div>
+                                <button class="btn-primary full-width mt-1" onclick="app.showOrderSuccess(this)">Order for Pickup</button>
+                            </div>
+                        </div>
+
+                        <div class="food-card glass-panel hover-scale">
+                            <img src="https://images.unsplash.com/photo-1621287959074-ce4323b63ee2?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" alt="Hot Dog">
+                            <div class="food-info">
+                                <h3>Jumbo Hot Dog</h3>
+                                <p>Express Stand • Sec D</p>
+                                <div class="food-meta">
+                                    <span class="price">$8.00</span>
+                                    <span class="tag wait-good"><i class="ph-fill ph-clock"></i> 2m wait</span>
+                                </div>
+                                <div class="promo-text text-accent text-sm">🔥 20% off (Demand Balance)</div>
+                                <button class="btn-primary full-width mt-1" onclick="app.showOrderSuccess(this)">Order for Pickup</button>
+                            </div>
+                        </div>
+                        
+                        <div class="food-card glass-panel hover-scale">
+                            <img src="https://images.unsplash.com/photo-1572449043416-55f4685c9bb7?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" alt="Fries">
+                            <div class="food-info">
+                                <h3>Loaded Fries</h3>
+                                <p>Snack Shack • Sec B</p>
+                                <div class="food-meta">
+                                    <span class="price">$6.00</span>
+                                    <span class="tag wait-good"><i class="ph-fill ph-clock"></i> 4m wait</span>
+                                </div>
+                                <button class="btn-primary full-width mt-1" onclick="app.showOrderSuccess(this)">Order for Pickup</button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW: TICKET -->
+            <section id="view-ticket" class="view fade-in" style="display: none;">
+                <div class="ticket-container">
+                    <div class="ticket glass-panel">
+                        <div class="ticket-top">
+                            <span class="tag bg-accent">VIP Access</span>
+                            <h2>CHAMPIONS LEAGUE FINAL</h2>
+                            <p>Real Madrid vs. Manchester City</p>
+                        </div>
+                        <div class="ticket-middle">
+                            <div class="info-block">
+                                <span class="label">Date</span>
+                                <span class="value">Oct 24, 2026</span>
+                            </div>
+                            <div class="info-block">
+                                <span class="label">Time</span>
+                                <span class="value">20:00 (GMT)</span>
+                            </div>
+                            <div class="info-block">
+                                <span class="label">Gate</span>
+                                <span class="value text-accent">5 (Optimized)</span>
+                            </div>
+                            <div class="info-block">
+                                <span class="label">Seat</span>
+                                <span class="value">Sec 102, R V, S 14</span>
+                            </div>
+                        </div>
+                        <div class="info-block">
+                            <div class="calendar-actions mt-1">
+                                <a id="add-to-calendar" href="#" target="_blank" class="btn-small text-accent" style="display: flex; align-items: center; gap: 5px; border: 1px solid var(--accent-color);">
+                                    <i class="ph-fill ph-calendar-plus"></i> Add to Google Calendar
+                                </a>
+                            </div>
+                        </div>
+                        <div class="ticket-bottom">
+                            <!-- Generate a QR code mock -->
+                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=Gate5-VIP-Alex-102&color=ffffff&bgcolor=1f2229&qzone=1" alt="QR Code" class="qr-code">
+                            <p class="text-sm opacity-70" style="margin-top: 12px; font-weight: 500;">Scan at Gate 5 for fast entry</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- GEMINI ASSISTANT MODAL -->
+        <div id="gemini-modal" class="side-panel chat-panel glass-panel">
+            <div class="panel-header">
+                <div class="gemini-brand">
+                    <i class="ph-fill ph-sparkle text-accent"></i>
+                    <h3>Gemini Assistant</h3>
+                </div>
+                <button class="icon-btn" onclick="app.toggleGemini()"><i class="ph ph-x"></i></button>
+            </div>
+            <div class="chat-container">
+                <div id="chat-messages" class="chat-messages">
+                    <div class="msg bot">
+                        <p>Hi Alex! I'm your Gemini-powered assistant. I have live access to your ticket and stadium sensors. How can I help you today?</p>
+                    </div>
+                </div>
+                <div class="chat-input-area">
+                    <button class="icon-btn-small" onclick="app.startVoiceRecognition()" id="mic-btn"><i class="ph ph-microphone"></i></button>
+                    <input type="text" id="gemini-input" placeholder="Ask about gates, food, or exit..." onkeypress="if(event.key === 'Enter') app.sendGeminiMsg()">
+                    <button onclick="app.sendGeminiMsg()"><i class="ph-fill ph-paper-plane-right"></i></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- FLOATING SMART ASSISTANT -->
+        <button class="assistant-fab" onclick="app.toggleGemini()" aria-label="Smart Assistant">
+            <i class="ph-fill ph-sparkle"></i>
+        </button>
+
+        <!-- BOTTOM NAVIGATION -->
+        <nav class="bottom-nav">
+            <button class="nav-item active" onclick="app.switchView('home')" data-view="home" aria-label="Home Dashboard">
+                <div class="nav-icon-container"><i class="ph-fill ph-house"></i></div>
+                <span>Home</span>
+            </button>
+            <button class="nav-item" onclick="app.switchView('map')" data-view="map" aria-label="Stadium Map">
+                <div class="nav-icon-container"><i class="ph-fill ph-map-pin"></i></div>
+                <span>Map</span>
+            </button>
+            <button class="nav-item" onclick="app.switchView('food')" data-view="food" aria-label="Order Food">
+                <div class="nav-icon-container"><i class="ph-fill ph-hamburger"></i></div>
+                <span>Food</span>
+            </button>
+            <button class="nav-item" onclick="app.switchView('ticket')" data-view="ticket" aria-label="My Ticket">
+                <div class="nav-icon-container"><i class="ph-fill ph-ticket"></i></div>
+                <span>Ticket</span>
+            </button>
+        </nav>
+        
+        <!-- MOCK NOTIFICATIONS PANEL -->
+        <div id="notifications-panel" class="side-panel glass-panel">
+            <div class="panel-header">
+                <h3>Notifications</h3>
+                <button class="icon-btn" onclick="app.toggleNotifications()"><i class="ph ph-x"></i></button>
+            </div>
+            <div class="notif-list">
+                <div class="notif-item unread">
+                    <div class="n-icon"><i class="ph-fill ph-warning-circle text-accent"></i></div>
+                    <div class="n-content">
+                        <strong>Gate 3 Congested</strong>
+                        <p>We've rerouted your entry to Gate 5.</p>
+                        <span class="n-time">Just now</span>
+                    </div>
+                </div>
+                 <div class="notif-item unread">
+                    <div class="n-icon"><i class="ph-fill ph-check-circle text-good"></i></div>
+                    <div class="n-content">
+                        <strong>Pre-order Ready</strong>
+                        <p>Your Jumbo Hot Dog at Sec D is ready.</p>
+                        <span class="n-time">5m ago</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="panel-overlay" id="panel-overlay" onclick="app.toggleNotifications()"></div>
+        
+        <!-- GLOBAL TOAST NOTIFICATION -->
+        <div id="toast-container" class="toast-container"></div>
+    </div>
+    
+    <script src="js/app.js"></script>
+</body>
+</html>
