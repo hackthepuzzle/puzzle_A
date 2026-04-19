@@ -27,10 +27,11 @@ Instead of overwhelming users with complex maps and manual choices, SVES uses re
 - **🔐 Secure Google Auth:** integrated **Google Identity Services** for one-tap Gmail login and validation.
 - **🎙️ Voice-Activated Assistant:** Use the integrated **Microphone (Web Speech API)** to ask the Gemini Assistant for directions or food recommendations hands-free.
 - **🔥 Firebase Ready:** Structural integration for **Firebase Auth/Firestore** to persist user bookings and preferences.
+- **🎫 Ticket Booking Engine:** A new "Quick Book" section on the home screen allows users to browse upcoming events like the **UCL Final** or **World Series** and instantly secure their digital pass.
 - **Smart Entry Routing:** Directs fans to the least crowded gate in real-time.
 - **Smart Assistant (Gemini Powered):** A dedicated AI chat interface that leverages simulated real-time sensor data to provide dynamic routing, food advice, and exit strategies.
 - **Live Google Services Integration:**
-    - **Google Maps:** Fully interactive live map of the venue for spatial awareness.
+    - **Google Maps:** Fully interactive map with traffic layers and an **auto-fallback mechanism** for maximum reliability.
     - **Google Calendar:** One-click integration to sync event details, entry gates, and seating to the user's personal calendar.
     - **Google Translate:** Native integration for real-time translation, ensuring the venue is accessible to international fans.
 - **Live Wait-Time Dashboard:** Real-time monitoring of food stalls and restrooms.

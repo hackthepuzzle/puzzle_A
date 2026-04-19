@@ -1,4 +1,5 @@
-const app = {
+// SVES Application Logic
+window.app = {
     init() {
         // Setup Google Services
         this.setupCalendarLink();
@@ -40,6 +41,12 @@ const app = {
         const targetView = document.getElementById(`view-${viewId}`);
         if(targetView) {
             targetView.classList.add('active-view');
+            
+            // Special case: Initialise Google Map if switching to map view
+            if (viewId === 'map') {
+                setTimeout(() => this.initMap(), 100); 
+            }
+
             // Allow DOM to settle before animating
             requestAnimationFrame(() => {
                 targetView.classList.add('fade-in');
@@ -136,7 +143,16 @@ const app = {
         if(q.includes('gate')) return "Checking live footfall... Gate 3 is crowded. I recommend Gate 5 (2m wait).";
         if(q.includes('food') || q.includes('hungry')) return "Stadium Grill (Sec C) has 12m wait. Express Stand (Sec D) is only 2m wait.";
         if(q.includes('exit')) return "I recommend waiting 15m post-match to use the Northern transport line.";
+        if(q.includes('book') || q.includes('ticket')) return "You can book tickets for upcoming events like the UCL Final or World Series directly from the 'Book Tickets' section on your Home dashboard!";
         return "I'm analyzing live stadium data. I can help with routing, food, and safety. What do you need?";
+    },
+
+    bookTicket(eventName) {
+        this.showToast('Booking Initiated', `Securing your seat for ${eventName}...`);
+        setTimeout(() => {
+            this.showToast('Success!', `Tournament ticket for ${eventName} is now in your wallet.`);
+            this.switchView('ticket');
+        }, 1500);
     },
 
     setupCalendarLink() {
@@ -151,15 +167,37 @@ const app = {
     },
 
     initMap() {
+        const mapEl = document.getElementById("google-map");
+        if (!mapEl || this.mapInited) return;
+
+        // Diagnostic: If API fails to load after 5s, fallback to reliable Iframe
+        const timeout = setTimeout(() => {
+            if (!this.mapInited) {
+                console.warn("SVES: Google Maps API timeout. Falling back to Iframe.");
+                mapEl.innerHTML = `<iframe 
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2480.9571343753737!2d-0.28286958396593535!3d51.55602481540306!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x48761181d57a876d%3A0xe6ea02e868f0a0ad!2sWembley%20Stadium!5e0!3m2!1sen!2suk!4v1698240000000!5m2!1sen!2suk" 
+                    width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"></iframe>`;
+                this.mapInited = true;
+            }
+        }, 5000);
+
         if (typeof google === 'undefined') return;
-        const wembley = { lat: 51.5560, lng: -0.2796 };
-        const map = new google.maps.Map(document.getElementById("google-map"), {
-            zoom: 16,
-            center: wembley,
-            disableDefaultUI: true,
-            styles: [{ elementType: "geometry", stylers: [{ color: "#242f3e" }] }]
-        });
-        new google.maps.TrafficLayer().setMap(map);
+        
+        try {
+            const wembley = { lat: 51.5560, lng: -0.2796 };
+            const map = new google.maps.Map(mapEl, {
+                zoom: 16,
+                center: wembley,
+                disableDefaultUI: true,
+                styles: [{ elementType: "geometry", stylers: [{ color: "#242f3e" }] }]
+            });
+            new google.maps.TrafficLayer().setMap(map);
+            this.mapInited = true;
+            clearTimeout(timeout);
+            console.log("SVES: Live Map Initialized.");
+        } catch (e) {
+            console.error("SVES: Map failed to render with API. Error:", e);
+        }
     },
 
     initGoogleLogin() {
